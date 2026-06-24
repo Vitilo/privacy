@@ -44,6 +44,13 @@
 .scr-layout-parrafo .scr-verse + .scr-verse::before {
   content: ' ';
 }
+/* Párrafos naturales del texto: cada uno es un bloque con su separación. */
+.scr-layout-parrafo .scr-para {
+  margin: 0 0 0.55em 0;
+}
+.scr-layout-parrafo .scr-para:last-child {
+  margin-bottom: 0;
+}
 
 /* Un versículo por línea. */
 .scr-layout-versiculos .scr-verse {

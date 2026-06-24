@@ -68,8 +68,16 @@ const outPath = args.out || join(here, '..', 'bibles', id + '.json');
 /* -------- acumuladores -------- */
 const data = new Map();        // bookId -> Map(chap -> Map(verse -> texto))
 const headings = new Map();    // bookId -> Map(chap -> título)
+const paras = new Map();       // bookId -> Map(chap -> Set(versículos que inician párrafo))
 const unknownBooks = new Set();
 let mergeCount = 0;
+
+function markPara(bookId, c, v) {
+  if (!paras.has(bookId)) paras.set(bookId, new Map());
+  const m = paras.get(bookId);
+  if (!m.has(c)) m.set(c, new Set());
+  m.get(c).add(v);
+}
 
 function setCell(bookId, c, v, text) {
   if (!data.has(bookId)) data.set(bookId, new Map());
@@ -110,18 +118,28 @@ function parseMarkdownSuperscript(content) {
   const lines = content.split(/\r?\n/);
   let bookId = null;
   let chap = null;
-  let lastVerses = null; // últimos versículos asignados (para continuaciones)
+  let lastVerses = null;   // últimos versículos asignados (para continuaciones)
+  let paraPending = false; // hubo una línea en blanco -> el próximo texto abre párrafo
+  let chapHasVerse = false; // ya se asignó algún versículo en este capítulo
 
   const appendCont = (text) => {
     const t = text.trim();
     if (!t || !bookId || !chap || !lastVerses) return;
+    // Si venimos de una línea en blanco, el corte de párrafo cae DENTRO del
+    // versículo (p. ej. Génesis 2:4): se marca con "\n" y el plugin lo respeta.
+    const sep = paraPending ? '\n' : ' ';
+    paraPending = false;
     for (const v of lastVerses) {
       const cur = getCell(bookId, chap, v) || '';
-      setCell(bookId, chap, v, (cur ? cur + ' ' : '') + t);
+      setCell(bookId, chap, v, cur ? cur + sep + t : t);
     }
   };
   const assignRange = (a, b, text) => {
     const t = text.trim();
+    // Una línea en blanco antes de un nuevo versículo = inicio de párrafo.
+    if (paraPending && chapHasVerse) markPara(bookId, chap, a);
+    paraPending = false;
+    chapHasVerse = true;
     for (let v = a; v <= b; v++) setCell(bookId, chap, v, t);
     lastVerses = [];
     for (let v = a; v <= b; v++) lastVerses.push(v);
@@ -135,17 +153,18 @@ function parseMarkdownSuperscript(content) {
     const cm = t.match(/^(?:#{1,6}\s+|-{2,}\s*)Cap[íi]tulo\s+(\d+)/i) ||
                t.match(/^Cap[íi]tulo\s+(\d+)\s*-*$/i);
     if (cm) {
-      chap = +cm[1]; lastVerses = null; continue;
+      chap = +cm[1]; lastVerses = null; paraPending = false; chapHasVerse = false; continue;
     }
     // Título de libro: "# GÉNESIS" o "### GÉNESIS ###" (solo si resuelve a un libro)
     const bm = t.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
     if (bm) {
       const id = resolveBook(bm[1].trim());
-      if (id) { bookId = id; chap = null; lastVerses = null; continue; }
+      if (id) { bookId = id; chap = null; lastVerses = null; paraPending = false; chapHasVerse = false; continue; }
     }
     // Líneas de borde/divisor (solo # o -) -> ignorar
     if (/^[#\-\s]+$/.test(t)) continue;
-    if (!t) continue;
+    // Línea en blanco: marca un posible corte de párrafo (si ya hay versículos).
+    if (!t) { if (bookId && chap && chapHasVerse) paraPending = true; continue; }
     if (/^---$/.test(t) || /^(tipo|tags|aliases|cssclass):/i.test(t)) continue; // frontmatter
     if (!bookId) continue;
     if (!chap) {
@@ -317,6 +336,14 @@ for (const bookId of BOOK_ORDER) {
     for (const [c, title] of headings.get(bookId)) h[c] = title;
     book.headings = h;
   }
+  if (paras.has(bookId)) {
+    const p = {};
+    for (const [c, set] of paras.get(bookId)) {
+      const list = [...set].sort((a, b) => a - b);
+      if (list.length) p[c] = list;
+    }
+    if (Object.keys(p).length) book.paras = p;
+  }
   books.push(book);
 }
 
@@ -334,6 +361,11 @@ console.log(`  libros:      ${books.length}`);
 console.log(`  capítulos:   ${chapterCount}`);
 console.log(`  versículos:  ${verseCount}`);
 if (mergeCount) console.log(`  combinados (rangos tipo 11-12): ${mergeCount}`);
+if (paras.size) {
+  let nParas = 0;
+  for (const m of paras.values()) for (const s of m.values()) nParas += s.size;
+  console.log(`  cortes de párrafo detectados: ${nParas}`);
+}
 if (headings.size) console.log(`  títulos (p. ej. de Salmos): ${[...headings.values()].reduce((n, m) => n + m.size, 0)}`);
 if (gapCount) console.log(`  huecos rellenados: ${gapCount}`);
 if (unknownBooks.size) console.log(`  ⚠ libros no reconocidos (omitidos): ${[...unknownBooks].join(', ')}`);

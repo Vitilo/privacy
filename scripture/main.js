@@ -517,8 +517,25 @@ class ScripturePlugin extends Plugin {
       }
     }
 
-    for (const g of groups) {
-      const vEl = body.createSpan({ cls: 'scr-verse' });
+    // Cortes de párrafo naturales del texto (capturados por el importador).
+    const paraMap = (book && book.paras) || {};
+    const startsPara = (chapter, verse) => {
+      const list = paraMap[chapter] || paraMap[String(chapter)];
+      return Array.isArray(list) && list.includes(verse);
+    };
+
+    let para = null; // contenedor de párrafo actual (solo en modo 'parrafo')
+    for (let gi = 0; gi < groups.length; gi++) {
+      const g = groups[gi];
+      let parent = body;
+      if (layout !== 'versiculos') {
+        if (gi === 0 || startsPara(g.chapter, g.verse) || !para) {
+          para = body.createDiv({ cls: 'scr-para' });
+        }
+        parent = para;
+      }
+
+      const vEl = parent.createSpan({ cls: 'scr-verse' });
       vEl.dataset.t = translation.id;
       vEl.dataset.b = ref.bookId;
       vEl.dataset.c = String(g.chapter);
@@ -529,8 +546,18 @@ class ScripturePlugin extends Plugin {
         const label = g.verse === g.endVerse ? String(g.verse) : `${g.verse}-${g.endVerse}`;
         vEl.createEl('sup', { cls: 'scr-vn', text: label });
       }
-      vEl.createSpan({ cls: 'scr-text', text: g.missing ? '⟨versículo no disponible⟩' : g.text });
-      if (g.missing) vEl.addClass('scr-missing');
+      const textEl = vEl.createSpan({ cls: 'scr-text' });
+      if (g.missing) {
+        textEl.setText('⟨versículo no disponible⟩');
+        vEl.addClass('scr-missing');
+      } else {
+        // Un "\n" marca un corte de párrafo DENTRO del versículo (p. ej. Gn 2:4).
+        const parts = String(g.text).split('\n');
+        parts.forEach((part, i) => {
+          if (i > 0) textEl.createEl('br');
+          textEl.appendText(part);
+        });
+      }
 
       this.attachHighlightHandlers(vEl, translation.id, ref.bookId, g.chapter, g.verse);
     }
