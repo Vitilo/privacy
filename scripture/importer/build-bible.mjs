@@ -103,7 +103,7 @@ function supToInt(s) { return parseInt([...s].map((c) => SUP[c]).join(''), 10); 
 
 function looksMarkdownSuperscript(content) {
   return new RegExp(`[${SUP_CLASS}]`).test(content) &&
-    (/^#\s+\S/m.test(content) || /^##\s+/m.test(content));
+    (/^#{1,6}\s+\S/m.test(content) || /Cap[íi]tulo\s+\d/i.test(content));
 }
 
 function parseMarkdownSuperscript(content) {
@@ -131,21 +131,20 @@ function parseMarkdownSuperscript(content) {
   for (const raw of lines) {
     const line = raw.replace(/ /g, ' ').replace(/\s+$/, '');
     const t = line.trim();
-    // Título de libro:  # GÉNESIS
-    if (/^#\s+\S/.test(line) && !/^##/.test(line)) {
-      const nm = t.replace(/^#\s+/, '').trim();
-      bookId = resolveBook(nm);
-      if (!bookId) unknownBooks.add(nm);
-      chap = null; lastVerses = null;
-      continue;
+    // Capítulo: "## Capítulo N", "--- Capítulo N ---", "Capítulo N"
+    const cm = t.match(/^(?:#{1,6}\s+|-{2,}\s*)Cap[íi]tulo\s+(\d+)/i) ||
+               t.match(/^Cap[íi]tulo\s+(\d+)\s*-*$/i);
+    if (cm) {
+      chap = +cm[1]; lastVerses = null; continue;
     }
-    // Capítulo:  ## Capítulo 1
-    if (/^##\s+/.test(line)) {
-      const m = t.match(/(\d+)/);
-      chap = m ? +m[1] : (chap || 0) + 1;
-      lastVerses = null;
-      continue;
+    // Título de libro: "# GÉNESIS" o "### GÉNESIS ###" (solo si resuelve a un libro)
+    const bm = t.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
+    if (bm) {
+      const id = resolveBook(bm[1].trim());
+      if (id) { bookId = id; chap = null; lastVerses = null; continue; }
     }
+    // Líneas de borde/divisor (solo # o -) -> ignorar
+    if (/^[#\-\s]+$/.test(t)) continue;
     if (!t) continue;
     if (/^---$/.test(t) || /^(tipo|tags|aliases|cssclass):/i.test(t)) continue; // frontmatter
     if (!bookId) continue;
