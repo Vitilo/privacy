@@ -24,6 +24,13 @@
   font-size: 0.85em;
 }
 
+.scr-title {
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 0.1em 0 0.35em;
+  font-size: calc(var(--scr-font-size, var(--font-text-size, 16px)) * 0.9);
+}
+
 .scr-body {
   font-size: var(--scr-font-size, var(--font-text-size, 16px));
   line-height: 1.6;

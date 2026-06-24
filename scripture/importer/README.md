@@ -15,6 +15,26 @@ El resultado va a `bibles/<id>.json`. Repite el comando para cada versión.
 
 ## Formatos de entrada admitidos (autodetectados)
 
+### 0) Markdown con superíndices (`.md` / `.txt`) — "Biblia en Obsidian"
+Títulos de libro con `# GÉNESIS`, capítulos con `## Capítulo 1` y números de
+versículo en superíndice Unicode (¹ ² ³ …), incluyendo combinados `¹¹-¹²`.
+Es el formato típico exportado para Obsidian. Se detecta solo.
+
+```
+# JUAN
+
+## Capítulo 3
+
+¹⁶ Dios amó tanto al mundo, que dio a su único Hijo...
+```
+
+**Desde un `.docx` (estilo NTV web):** primero conviértelo con el ayudante:
+
+```bash
+python3 docx-a-texto.py "biblia_ntv.docx" ntv.txt
+node build-bible.mjs ntv.txt --id NTV --name "Nueva Traducción Viviente" --abbr NTV
+```
+
 ### 1) VPL — texto por versículo (`.txt`)
 Una línea por versículo: `Libro Capítulo:Versículo` y luego el texto.
 

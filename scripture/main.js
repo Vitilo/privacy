@@ -254,7 +254,7 @@ function lookupVerses(translation, ref) {
   if (s.type === 'chapter') {
     const arr = chapters[s.chapter - 1] || [];
     for (let i = 0; i < arr.length; i++) {
-      out.push({ chapter: s.chapter, verse: i + 1, text: arr[i] });
+      out.push({ chapter: s.chapter, verse: i + 1, text: arr[i], missing: arr[i] == null });
     }
   } else if (s.type === 'verses') {
     for (const [a, b] of s.verses) {
@@ -493,25 +493,46 @@ class ScripturePlugin extends Plugin {
       return;
     }
 
+    // Título del capítulo (p. ej. encabezado de un Salmo) si el pasaje empieza en v1.
+    const book = translation.index.get(ref.bookId);
+    if (book && book.headings && verses[0] && verses[0].verse === 1) {
+      const title = book.headings[verses[0].chapter] || book.headings[String(verses[0].chapter)];
+      if (title) passage.createDiv({ cls: 'scr-title', text: title });
+    }
+
     const body = passage.createDiv({
       cls: 'scr-body ' + (layout === 'versiculos' ? 'scr-layout-versiculos' : 'scr-layout-parrafo'),
     });
 
+    // Agrupa versículos consecutivos con texto idéntico (versículos combinados,
+    // p. ej. 11-12) para mostrarlos una sola vez con la etiqueta "11-12".
+    const groups = [];
     for (const v of verses) {
+      const last = groups[groups.length - 1];
+      if (last && !v.missing && !last.missing && last.text === v.text &&
+          last.chapter === v.chapter && v.verse === last.endVerse + 1) {
+        last.endVerse = v.verse;
+      } else {
+        groups.push({ chapter: v.chapter, verse: v.verse, endVerse: v.verse, text: v.text, missing: v.missing });
+      }
+    }
+
+    for (const g of groups) {
       const vEl = body.createSpan({ cls: 'scr-verse' });
       vEl.dataset.t = translation.id;
       vEl.dataset.b = ref.bookId;
-      vEl.dataset.c = String(v.chapter);
-      vEl.dataset.v = String(v.verse);
-      this.applyHighlightClass(vEl, translation.id, ref.bookId, v.chapter, v.verse);
+      vEl.dataset.c = String(g.chapter);
+      vEl.dataset.v = String(g.verse);
+      this.applyHighlightClass(vEl, translation.id, ref.bookId, g.chapter, g.verse);
 
       if (this.settings.showVerseNumbers) {
-        vEl.createEl('sup', { cls: 'scr-vn', text: String(v.verse) });
+        const label = g.verse === g.endVerse ? String(g.verse) : `${g.verse}-${g.endVerse}`;
+        vEl.createEl('sup', { cls: 'scr-vn', text: label });
       }
-      vEl.createSpan({ cls: 'scr-text', text: v.missing ? '⟨versículo no disponible⟩' : v.text });
-      if (v.missing) vEl.addClass('scr-missing');
+      vEl.createSpan({ cls: 'scr-text', text: g.missing ? '⟨versículo no disponible⟩' : g.text });
+      if (g.missing) vEl.addClass('scr-missing');
 
-      this.attachHighlightHandlers(vEl, translation.id, ref.bookId, v.chapter, v.verse);
+      this.attachHighlightHandlers(vEl, translation.id, ref.bookId, g.chapter, g.verse);
     }
   }
 
