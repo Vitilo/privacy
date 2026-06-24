@@ -237,7 +237,25 @@ function parseCSV(content) {
 
 /* -------- 4/5) JSON -------- */
 function parseJSON(content) {
-  const obj = JSON.parse(content);
+  const obj = JSON.parse(content.replace(/^﻿/, ''));
+  // Formato común público: array de 66 libros en orden canónico,
+  // cada uno { abbrev, name, chapters: [[v1, v2, ...], ...] }. Se mapea por
+  // POSICIÓN (más fiable que el nombre, que a veces viene en inglés).
+  if (Array.isArray(obj) && obj[0] && Array.isArray(obj[0].chapters)) {
+    obj.forEach((b, i) => {
+      const bookId = BOOK_ORDER[i];
+      if (!bookId) { unknownBooks.add(b.name || b.abbrev || ('#' + i)); return; }
+      const chapters = b.chapters || [];
+      for (let ci = 0; ci < chapters.length; ci++) {
+        const verses = chapters[ci] || [];
+        for (let vi = 0; vi < verses.length; vi++) {
+          const t = verses[vi];
+          if (t != null && t !== '') setCell(bookId, ci + 1, vi + 1, String(t).trim());
+        }
+      }
+    });
+    return;
+  }
   if (obj && Array.isArray(obj.books) && obj.books[0] && obj.books[0].id) {
     for (const b of obj.books) {
       const chapters = b.chapters || [];
