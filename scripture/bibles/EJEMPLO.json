@@ -1,0 +1,93 @@
+{
+  "id": "EJEMPLO",
+  "name": "Versión de Ejemplo",
+  "abbr": "EJ",
+  "language": "es",
+  "_nota": "Texto de marcador de posición SOLO para probar el plugin. Reemplázalo con tus versiones reales (RV, NTV, NBV) usando el importador. No es Escritura real.",
+  "books": [
+    {
+      "id": "GEN",
+      "name": "Génesis",
+      "chapters": [
+        [
+          "Génesis 1:1 — texto de ejemplo. Reemplaza con tu versión real.",
+          "Génesis 1:2 — texto de ejemplo. Reemplaza con tu versión real.",
+          "Génesis 1:3 — texto de ejemplo. Reemplaza con tu versión real.",
+          "Génesis 1:4 — texto de ejemplo. Reemplaza con tu versión real.",
+          "Génesis 1:5 — texto de ejemplo. Reemplaza con tu versión real."
+        ]
+      ]
+    },
+    {
+      "id": "PSA",
+      "name": "Salmos",
+      "chapters": [
+        ["Salmos 1:1 — ejemplo.", "Salmos 1:2 — ejemplo."],
+        ["Salmos 2:1 — ejemplo."],
+        ["Salmos 3:1 — ejemplo."],
+        ["Salmos 4:1 — ejemplo."],
+        ["Salmos 5:1 — ejemplo."],
+        ["Salmos 6:1 — ejemplo."],
+        ["Salmos 7:1 — ejemplo."],
+        ["Salmos 8:1 — ejemplo."],
+        ["Salmos 9:1 — ejemplo."],
+        ["Salmos 10:1 — ejemplo."],
+        ["Salmos 11:1 — ejemplo."],
+        ["Salmos 12:1 — ejemplo."],
+        ["Salmos 13:1 — ejemplo."],
+        ["Salmos 14:1 — ejemplo."],
+        ["Salmos 15:1 — ejemplo."],
+        ["Salmos 16:1 — ejemplo."],
+        ["Salmos 17:1 — ejemplo."],
+        ["Salmos 18:1 — ejemplo."],
+        ["Salmos 19:1 — ejemplo."],
+        ["Salmos 20:1 — ejemplo."],
+        ["Salmos 21:1 — ejemplo."],
+        ["Salmos 22:1 — ejemplo."],
+        [
+          "Salmos 23:1 — El Señor es mi pastor; nada me faltará. (texto de ejemplo)",
+          "Salmos 23:2 — texto de ejemplo.",
+          "Salmos 23:3 — texto de ejemplo.",
+          "Salmos 23:4 — texto de ejemplo.",
+          "Salmos 23:5 — texto de ejemplo.",
+          "Salmos 23:6 — texto de ejemplo."
+        ]
+      ]
+    },
+    {
+      "id": "JHN",
+      "name": "Juan",
+      "chapters": [
+        ["Juan 1:1 — ejemplo."],
+        ["Juan 2:1 — ejemplo."],
+        [
+          "Juan 3:1 — texto de ejemplo.",
+          "Juan 3:2 — texto de ejemplo.",
+          "Juan 3:3 — texto de ejemplo.",
+          "Juan 3:4 — texto de ejemplo.",
+          "Juan 3:5 — texto de ejemplo.",
+          "Juan 3:6 — texto de ejemplo.",
+          "Juan 3:7 — texto de ejemplo.",
+          "Juan 3:8 — texto de ejemplo.",
+          "Juan 3:9 — texto de ejemplo.",
+          "Juan 3:10 — texto de ejemplo.",
+          "Juan 3:11 — texto de ejemplo.",
+          "Juan 3:12 — texto de ejemplo.",
+          "Juan 3:13 — texto de ejemplo.",
+          "Juan 3:14 — texto de ejemplo.",
+          "Juan 3:15 — texto de ejemplo.",
+          "Juan 3:16 — Porque de tal manera... (texto de ejemplo, reemplázalo)",
+          "Juan 3:17 — texto de ejemplo.",
+          "Juan 3:18 — texto de ejemplo.",
+          "Juan 3:19 — texto de ejemplo.",
+          "Juan 3:20 — texto de ejemplo."
+        ],
+        [
+          "Juan 4:1 — texto de ejemplo.",
+          "Juan 4:2 — texto de ejemplo.",
+          "Juan 4:3 — texto de ejemplo."
+        ]
+      ]
+    }
+  ]
+}

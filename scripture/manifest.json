@@ -1,0 +1,9 @@
+{
+  "id": "scripture-db",
+  "name": "Biblia (base de datos)",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Guarda la Biblia como base de datos y la muestra (no editable) con referencias tipo Juan 3:16-19, rangos, modo lectura y resaltados guardados aparte del texto.",
+  "author": "Vitilo",
+  "isDesktopOnly": false
+}

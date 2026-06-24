@@ -1,0 +1,101 @@
+/* Biblia (base de datos) — estilos
+   Usa variables del tema de Obsidian para integrarse con claro/oscuro. */
+
+.scripture-block {
+  margin: 0.4em 0;
+}
+
+.scr-passage {
+  border-left: 3px solid var(--interactive-accent);
+  padding: 0.3em 0 0.3em 0.8em;
+  margin: 0.6em 0;
+}
+
+.scr-ref {
+  font-weight: 600;
+  color: var(--text-accent);
+  margin-bottom: 0.25em;
+  font-size: calc(var(--scr-font-size, var(--font-text-size, 16px)) * 0.95);
+}
+
+.scr-version {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.scr-body {
+  font-size: var(--scr-font-size, var(--font-text-size, 16px));
+  line-height: 1.6;
+  color: var(--text-normal);
+}
+
+/* Texto corrido: los versículos fluyen como un párrafo. */
+.scr-layout-parrafo .scr-verse {
+  display: inline;
+}
+.scr-layout-parrafo .scr-verse + .scr-verse::before {
+  content: ' ';
+}
+
+/* Un versículo por línea. */
+.scr-layout-versiculos .scr-verse {
+  display: block;
+  padding: 0.05em 0.2em;
+  border-radius: 4px;
+}
+
+.scr-verse {
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 80ms ease;
+}
+.scr-verse:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.scr-vn {
+  color: var(--text-accent);
+  font-weight: 700;
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+  margin-right: 0.25em;
+  user-select: none;
+}
+
+.scr-missing {
+  color: var(--text-error);
+  font-style: italic;
+}
+
+/* Resaltados (se guardan aparte del texto, no lo modifican). */
+.scr-hl-amarillo { background-color: rgba(255, 214, 0, 0.30); }
+.scr-hl-verde    { background-color: rgba(46, 204, 113, 0.28); }
+.scr-hl-azul     { background-color: rgba(52, 152, 219, 0.28); }
+.scr-hl-rosa     { background-color: rgba(232, 67, 147, 0.26); }
+.scr-hl-naranja  { background-color: rgba(230, 126, 34, 0.30); }
+
+.theme-dark .scr-hl-amarillo { background-color: rgba(255, 214, 0, 0.22); }
+.theme-dark .scr-hl-verde    { background-color: rgba(46, 204, 113, 0.22); }
+.theme-dark .scr-hl-azul     { background-color: rgba(52, 152, 219, 0.24); }
+.theme-dark .scr-hl-rosa     { background-color: rgba(232, 67, 147, 0.22); }
+.theme-dark .scr-hl-naranja  { background-color: rgba(230, 126, 34, 0.24); }
+
+/* Referencia en línea: `bible:Juan 3:16` -> "Juan 3:16" */
+.scr-inline {
+  color: var(--text-accent);
+  font-weight: 600;
+  border-bottom: 1px dotted var(--text-accent);
+  cursor: help;
+  white-space: nowrap;
+}
+
+.scr-error {
+  color: var(--text-error);
+  background-color: var(--background-modifier-error);
+  border-radius: 4px;
+  padding: 0.3em 0.6em;
+  margin: 0.3em 0;
+  font-size: 0.9em;
+}
