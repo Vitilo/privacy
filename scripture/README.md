@@ -102,6 +102,21 @@ node importer/build-bible.mjs <tu-archivo> --id RV --name "Reina-Valera 1960" --
 
 Esto crea `bibles/RV.json`. Repite para NTV y NBV.
 
+## Leer la Biblia de corrido
+
+Para leer capítulo por capítulo (no solo citar versículos), genera las notas de
+lectura: una nota por capítulo, con navegación ‹ anterior / siguiente ›, índices
+por libro y un índice general.
+
+```bash
+node importer/generar-notas-lectura.mjs "/ruta/a/tu/vault/Biblia"
+```
+
+Las notas usan la **versión por defecto** del plugin, así que una sola colección
+sirve para todas tus versiones: cambia la versión en los ajustes y toda la
+lectura cambia. Abre `Biblia.md` para empezar. El texto se muestra en **modo
+lectura**, no editable, y resaltable con clic.
+
 ## Migrar desde las notas antiguas (`v334455`)
 
 Una vez que confirmes que tus pasajes se ven bien con el plugin, ya **no
