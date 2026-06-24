@@ -559,7 +559,7 @@ class ScripturePlugin extends Plugin {
         });
       }
 
-      this.attachHighlightHandlers(vEl, translation.id, ref.bookId, g.chapter, g.verse);
+      this.attachHighlightHandlers(vEl, translation.id, ref.bookId, g.chapter, g.verse, g.endVerse);
     }
   }
 
@@ -569,7 +569,7 @@ class ScripturePlugin extends Plugin {
     if (color) vEl.addClass('scr-hl-' + color);
   }
 
-  attachHighlightHandlers(vEl, trId, bookId, ch, v) {
+  attachHighlightHandlers(vEl, trId, bookId, ch, v, endV) {
     // Clic: cicla colores. Permite resaltar SIN editar el texto.
     vEl.addEventListener('click', (ev) => {
       if (ev.defaultPrevented) return;
@@ -594,11 +594,21 @@ class ScripturePlugin extends Plugin {
         );
       }
       menu.addSeparator?.();
+      // Referencia legible de este versículo (o rango combinado 11-12).
+      const bookName = (BOOK_BY_ID.get(bookId) && BOOK_BY_ID.get(bookId).name) || bookId;
+      const vLabel = endV && endV > v ? `${v}-${endV}` : `${v}`;
+      const refStr = `${bookName} ${ch}:${vLabel}`;
       menu.addItem((item) =>
-        item.setTitle('Copiar versículo').onClick(() => {
+        item.setTitle('Copiar como bloque ```bible').onClick(() => {
+          navigator.clipboard?.writeText('```bible\n' + refStr + '\n```\n');
+          new Notice(`Copiado: ${refStr} (se renderiza al pegar)`);
+        })
+      );
+      menu.addItem((item) =>
+        item.setTitle('Copiar solo el texto').onClick(() => {
           const text = vEl.querySelector('.scr-text')?.textContent || '';
           navigator.clipboard?.writeText(text);
-          new Notice('Versículo copiado');
+          new Notice('Texto copiado');
         })
       );
       menu.showAtMouseEvent(ev);
