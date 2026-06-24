@@ -540,6 +540,7 @@ class ScripturePlugin extends Plugin {
       vEl.dataset.b = ref.bookId;
       vEl.dataset.c = String(g.chapter);
       vEl.dataset.v = String(g.verse);
+      vEl.dataset.ve = String(g.endVerse);
       this.applyHighlightClass(vEl, translation.id, ref.bookId, g.chapter, g.verse);
 
       if (this.settings.showVerseNumbers) {
@@ -569,19 +570,108 @@ class ScripturePlugin extends Plugin {
     if (color) vEl.addClass('scr-hl-' + color);
   }
 
+  /* -------- Selección de varios versículos (Shift / Cmd-Ctrl + clic) -------- */
+  clearSelection(scope) {
+    const root = scope || document;
+    root.querySelectorAll?.('.scr-verse.scr-selected').forEach((el) => el.removeClass('scr-selected'));
+  }
+  selectRange(body, target) {
+    if (!body) return;
+    const all = Array.from(body.querySelectorAll('.scr-verse'));
+    const anchor = this._selAnchor && body.contains(this._selAnchor) ? this._selAnchor : null;
+    if (!anchor) {
+      this.clearSelection(body);
+      target.addClass('scr-selected');
+      this._selAnchor = target;
+    } else {
+      const i1 = all.indexOf(anchor);
+      const i2 = all.indexOf(target);
+      if (i1 === -1 || i2 === -1) return;
+      const [lo, hi] = i1 <= i2 ? [i1, i2] : [i2, i1];
+      this.clearSelection(body);
+      for (let i = lo; i <= hi; i++) all[i].addClass('scr-selected');
+    }
+    window.getSelection()?.removeAllRanges();
+  }
+  toggleSelect(body, target) {
+    if (target.hasClass('scr-selected')) target.removeClass('scr-selected');
+    else target.addClass('scr-selected');
+    this._selAnchor = target;
+    window.getSelection()?.removeAllRanges();
+  }
+  // Construye el bloque ```bible de la selección: agrupa por capítulo y colapsa
+  // versículos consecutivos en rangos (2-5) o listas (2,4,6).
+  buildSelectionRef(body) {
+    const sel = Array.from(body.querySelectorAll('.scr-verse.scr-selected'));
+    if (!sel.length) return null;
+    const bookId = sel[0].dataset.b;
+    const bookName = (BOOK_BY_ID.get(bookId) && BOOK_BY_ID.get(bookId).name) || bookId;
+    const byChap = new Map();
+    for (const el of sel) {
+      const c = +el.dataset.c;
+      const v = +el.dataset.v;
+      const ve = +el.dataset.ve || v;
+      if (!byChap.has(c)) byChap.set(c, new Set());
+      for (let x = v; x <= ve; x++) byChap.get(c).add(x);
+    }
+    const lines = [];
+    for (const c of [...byChap.keys()].sort((a, b) => a - b)) {
+      const verses = [...byChap.get(c)].sort((a, b) => a - b);
+      const parts = [];
+      let start = verses[0];
+      let prev = verses[0];
+      for (let i = 1; i < verses.length; i++) {
+        if (verses[i] === prev + 1) { prev = verses[i]; continue; }
+        parts.push(start === prev ? `${start}` : `${start}-${prev}`);
+        start = prev = verses[i];
+      }
+      parts.push(start === prev ? `${start}` : `${start}-${prev}`);
+      lines.push(`${bookName} ${c}:${parts.join(',')}`);
+    }
+    return lines.join('\n');
+  }
+
   attachHighlightHandlers(vEl, trId, bookId, ch, v, endV) {
-    // Clic: cicla colores. Permite resaltar SIN editar el texto.
+    // Clic: cicla colores (resalta SIN editar). Shift/Cmd-Ctrl: selecciona.
     vEl.addEventListener('click', (ev) => {
       if (ev.defaultPrevented) return;
+      const body = vEl.closest('.scr-body');
+      if (ev.shiftKey) { ev.preventDefault(); this.selectRange(body, vEl); return; }
+      if (ev.metaKey || ev.ctrlKey) { ev.preventDefault(); this.toggleSelect(body, vEl); return; }
+      // clic normal: limpia la selección y cicla el color
+      this.clearSelection(body);
+      this._selAnchor = null;
       const cur = this.getHighlight(trId, bookId, ch, v);
       const next = PALETTE[(PALETTE.indexOf(cur) + 1) % PALETTE.length];
       this.setHighlight(trId, bookId, ch, v, next);
       this.applyHighlightClass(vEl, trId, bookId, ch, v);
     });
-    // Clic derecho: menú para elegir color exacto o copiar.
+    // Clic derecho: menú para elegir color o copiar (versículo o selección).
     vEl.addEventListener('contextmenu', (ev) => {
       ev.preventDefault();
+      const body = vEl.closest('.scr-body');
+      const selSpans = body ? Array.from(body.querySelectorAll('.scr-verse.scr-selected')) : [];
       const menu = new Menu();
+
+      // Si hay una selección de varios versículos, ofrecer copiarla primero.
+      if (selSpans.length >= 2) {
+        const selRef = this.buildSelectionRef(body);
+        menu.addItem((item) =>
+          item.setTitle('Copiar selección como bloque ```bible').onClick(() => {
+            navigator.clipboard?.writeText('```bible\n' + selRef + '\n```\n');
+            new Notice(`Copiada la selección: ${selRef.replace(/\n/g, ' · ')}`);
+          })
+        );
+        menu.addItem((item) =>
+          item.setTitle('Copiar selección (solo texto)').onClick(() => {
+            const text = selSpans.map((el) => el.querySelector('.scr-text')?.textContent || '').join(' ');
+            navigator.clipboard?.writeText(text);
+            new Notice('Texto de la selección copiado');
+          })
+        );
+        menu.addSeparator?.();
+      }
+
       for (const c of PALETTE) {
         menu.addItem((item) =>
           item
@@ -599,13 +689,13 @@ class ScripturePlugin extends Plugin {
       const vLabel = endV && endV > v ? `${v}-${endV}` : `${v}`;
       const refStr = `${bookName} ${ch}:${vLabel}`;
       menu.addItem((item) =>
-        item.setTitle('Copiar como bloque ```bible').onClick(() => {
+        item.setTitle('Copiar este versículo como bloque ```bible').onClick(() => {
           navigator.clipboard?.writeText('```bible\n' + refStr + '\n```\n');
           new Notice(`Copiado: ${refStr} (se renderiza al pegar)`);
         })
       );
       menu.addItem((item) =>
-        item.setTitle('Copiar solo el texto').onClick(() => {
+        item.setTitle('Copiar este versículo (solo texto)').onClick(() => {
           const text = vEl.querySelector('.scr-text')?.textContent || '';
           navigator.clipboard?.writeText(text);
           new Notice('Texto copiado');

@@ -84,6 +84,20 @@ Acepta nombres y abreviaturas en español (`Juan`, `Jn`, `Salmos`, `Sal`,
 Los resaltados se guardan en los datos del plugin (`data.json`), **separados
 del texto bíblico**. El texto nunca se modifica.
 
+## Copiar versículos (se pegan renderizados)
+
+Al copiar, se pone en el portapapeles un bloque ```` ```bible ```` con la
+referencia, así al pegarlo en otra nota **se renderiza** (no queda como texto
+plano). Ideal para armar notas de estudio.
+
+- **Uno**: clic derecho sobre el versículo → *Copiar este versículo como
+  bloque*.
+- **Varios**: mantén **Shift** y haz clic en el primero y el último (selecciona
+  el rango), o **Cmd/Ctrl + clic** para elegir versículos sueltos; luego clic
+  derecho → *Copiar selección como bloque*.
+- La referencia se arma sola: rango (`2-5`), lista (`2,4,6`) e incluso entre
+  capítulos (una línea por capítulo). Cada menú incluye también *solo el texto*.
+
 ## Ajustes
 
 - **Versión por defecto** — la que se usa cuando no indicas `version:`.
